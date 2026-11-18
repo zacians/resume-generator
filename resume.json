@@ -1,0 +1,88 @@
+{
+  "name": "Jordan Avery Blake",
+  "contact": {
+    "email": "jordan.blake@example.com",
+    "phone": "+1 555 014 2277",
+    "location": "Portland, OR",
+    "links": [
+      "github.com/jblake",
+      "linkedin.com/in/jblake"
+    ]
+  },
+  "summary": "Backend engineer with 6 years building Python services and data pipelines. Focused on reliability, cost, and clean APIs.",
+  "experience": [
+    {
+      "title": "Senior Backend Engineer",
+      "company": "Northwind Data",
+      "location": "Portland, OR",
+      "start": "2022",
+      "end": "Present",
+      "bullets": [
+        "Led migration of 40 Python services to containerized deploys, cutting release time from 2 hours to 12 minutes.",
+        "Designed event-driven ingestion pipeline handling 3.5M records per day with 99.9% uptime.",
+        "Reduced cloud spend 28% by right-sizing workers and adding request caching.",
+        "Mentored 4 engineers and introduced code review checklist adopted by 3 teams."
+      ]
+    },
+    {
+      "title": "Backend Engineer",
+      "company": "Lumen Labs",
+      "location": "Remote",
+      "start": "2020",
+      "end": "2022",
+      "bullets": [
+        "Built REST and GraphQL APIs in Django serving 120k monthly active users.",
+        "Added integration tests and CI gates, dropping production incidents 45%.",
+        "Automated reporting jobs that replaced 10 hours of manual work each week."
+      ]
+    },
+    {
+      "title": "Junior Developer",
+      "company": "Cedar Software",
+      "location": "Seattle, WA",
+      "start": "2018",
+      "end": "2020",
+      "bullets": [
+        "Maintained internal tools in Python and PostgreSQL for the support team.",
+        "Wrote data validation scripts that caught 1,200 bad records in the first quarter."
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "Trailhead",
+      "tech": "Python, FastAPI, SQLite",
+      "description": "Open-source trip planner with offline maps and a public REST API."
+    },
+    {
+      "name": "Bench",
+      "tech": "Python, pandas",
+      "description": "Benchmark harness comparing query performance across storage engines."
+    }
+  ],
+  "skills": [
+    "Python",
+    "Django",
+    "FastAPI",
+    "PostgreSQL",
+    "Redis",
+    "Docker",
+    "Kubernetes",
+    "AWS",
+    "Terraform",
+    "CI/CD",
+    "GraphQL",
+    "pandas",
+    "SQL",
+    "Linux",
+    "Git"
+  ],
+  "education": [
+    {
+      "degree": "B.S. Computer Science",
+      "school": "University of Oregon",
+      "location": "Eugene, OR",
+      "year": "2018"
+    }
+  ]
+}

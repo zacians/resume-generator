@@ -1,0 +1,16 @@
+# Local secrets
+.settings.json
+
+# AI cache and Python bytecode
+.cache/
+__pycache__/
+*.py[cod]
+
+# Generated build outputs
+resume.html
+resume.md
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.log

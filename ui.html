@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>resume-gen</title>
+<style>
+:root{--bg:#f6f7fb;--panel:#fff;--ink:#111827;--muted:#4b5563;--line:#e5e7eb;--accent:#4f46e5;--accent-ink:#fff;--accent-soft:#eef2ff;--good:#15803d;--bad:#b91c1c;--shadow:0 1px 2px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.06);--r:12px}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1117;--panel:#171a23;--ink:#e5e7eb;--muted:#9ca3af;--line:#2a2f3a;--accent:#818cf8;--accent-ink:#0b0d12;--accent-soft:#1e2233;--good:#4ade80;--bad:#f87171;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35)}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+h1,h2,h3,p{margin:0}
+.topbar{position:sticky;top:0;z-index:20;display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{font-weight:700;letter-spacing:-.01em}
+.top-actions{display:flex;gap:8px;align-items:center;position:relative}
+.progress-wrap{padding:8px 16px 0;max-width:1400px;margin:0 auto}
+.progress{height:6px;background:var(--line);border-radius:999px;overflow:hidden}
+.progress span{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+#progressText{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.layout{display:grid;grid-template-columns:45% 55%;gap:16px;max-width:1400px;margin:0 auto;padding:16px;align-items:start}
+.editor{display:flex;flex-direction:column;gap:8px;min-width:0}
+.previewPane{position:sticky;top:88px;min-width:0}
+.paper{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;width:100%;aspect-ratio:210/297;max-height:calc(100vh - 110px)}
+.paper iframe{display:block;width:100%;height:100%;border:0;background:#fff}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.cardHead{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:8px 16px;background:none;border:0;color:var(--ink);font:inherit;font-weight:600;text-align:left;cursor:pointer}
+.cardHead:hover{background:var(--accent-soft)}
+.check{flex:none;display:grid;place-items:center;width:22px;height:22px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted)}
+.check.ok{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.chev{margin-left:auto;color:var(--muted);transition:transform .15s}
+.card.open .chev{transform:rotate(180deg)}
+.cardBody{padding:0 16px 16px;border-top:1px solid var(--line)}
+.cardBody>*:first-child{margin-top:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:12px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;margin-top:12px}
+.field.wide{grid-column:1/-1}
+.grid2 .field{margin-top:0}
+label,.label{font-size:13px;font-weight:600;color:var(--muted)}
+input,textarea,select{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:44px;width:100%}
+textarea{min-height:96px;resize:vertical}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input:disabled{opacity:.5}
+.hint{margin:0;font-size:12px;color:var(--muted)}
+.hint.warn{color:var(--bad)}
+.muted{color:var(--muted);font-size:14px}
+.empty{margin:12px 0;padding:16px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);text-align:center}
+.photoRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.thumb{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.emptyThumb{display:grid;place-items:center;font-size:11px;color:var(--muted);background:var(--bg)}
+.entry{border:1px solid var(--line);border-radius:8px;padding:12px;margin-top:12px;background:var(--panel)}
+.entryHead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.entryActions{display:flex;gap:4px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--accent-soft)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.small{min-height:36px;padding:0 10px;font-size:14px}
+.btn.tiny{min-height:32px;min-width:32px;padding:0 8px;font-size:13px}
+.btn.danger{color:var(--bad)}
+.btn.add{width:100%;margin-top:12px;border-style:dashed}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.icon{min-width:44px;padding:0;font-size:20px}
+.menu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:190px;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow)}
+.menu button{display:block;width:100%;min-height:44px;padding:10px 12px;background:none;border:0;border-radius:6px;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.menu button:hover{background:var(--accent-soft)}
+.menu button.danger{color:var(--bad)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 4px 4px 12px;background:var(--accent-soft);border:1px solid var(--line);border-radius:999px;font-size:14px}
+.chip button{display:grid;place-items:center;width:28px;height:28px;border:0;border-radius:999px;background:none;color:var(--muted);cursor:pointer}
+.chip button:hover{background:var(--panel);color:var(--bad)}
+.chips input{flex:1 1 160px;min-width:140px}
+.dates{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px}
+.dates input[type=month]{flex:1 1 120px;min-width:0}
+.inline{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-size:14px;font-weight:500;color:var(--ink)}
+.inline input{width:20px;height:20px;min-height:0;accent-color:var(--accent)}
+.status{margin:8px 0 0;font-size:14px;min-height:20px;white-space:pre-line}
+.status.good{color:var(--good)}
+.status.bad{color:var(--bad)}
+.diffHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:12px 0 8px}
+.diffItem{padding:10px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px}
+.diffLabel{margin:0 0 6px;font-size:14px;font-weight:600}
+.tag{display:inline-block;margin-right:6px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.diffOld{margin:0;color:var(--muted);font-size:14px;text-decoration:line-through}
+.diffNew{margin:4px 0 8px;font-size:14px}
+.diffActions{display:flex;gap:6px}
+.spinner{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+dialog{width:min(520px,calc(100vw - 32px));padding:0;border:0;border-radius:var(--r);background:var(--panel);color:var(--ink);box-shadow:0 24px 64px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(15,17,23,.55)}
+.dlg{display:flex;flex-direction:column;gap:12px;padding:20px}
+.dlg h2{font-size:20px}
+.dlg h3{font-size:13px;margin:6px 0 -4px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.row.end{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.banner{padding:10px 12px;background:var(--accent-soft);border:1px solid var(--line);border-radius:8px;font-size:14px}
+.saved{min-width:44px;font-size:13px;color:var(--good);text-align:right;opacity:0;transition:opacity .15s}
+.saved.on{opacity:1}
+.toast{position:fixed;left:50%;bottom:72px;z-index:50;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:8px;background:var(--ink);color:var(--bg);font-size:14px;transform:translateX(-50%)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.tabs{display:none}
+@media (max-width:800px){
+  .layout{grid-template-columns:1fr;gap:12px;padding:12px}
+  .previewPane{position:static}
+  .editor,.previewPane{display:none}
+  body[data-tab=edit] .editor{display:flex}
+  body[data-tab=preview] .previewPane{display:block}
+  body[data-tab=ai] .editor{display:flex}
+  .paper{aspect-ratio:auto;max-height:none}
+  .paper iframe{height:calc(100vh - 200px)}
+  .editor{padding-bottom:64px}
+  .grid2{grid-template-columns:1fr}
+  .topbar{padding:8px 12px}
+  .top-actions{gap:6px}
+  #tpl{max-width:108px}
+  .tabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;padding:4px;background:var(--panel);border-top:1px solid var(--line)}
+  .tabs button{flex:1;min-height:48px;border:0;border-radius:8px;background:none;color:var(--muted);font:inherit;font-weight:600;cursor:pointer}
+  .tabs button.active{background:var(--accent-soft);color:var(--accent)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body data-tab="edit">
+<header class="topbar">
+  <div class="brand">resume-gen</div>
+  <div class="top-actions">
+    <span id="saved" class="saved" aria-live="polite"></span>
+    <label class="sr-only" for="tpl">Template</label>
+    <select id="tpl"><option value="classic">Classic</option><option value="modern">Modern</option></select>
+    <button type="button" class="btn primary" id="pdf">Download PDF</button>
+    <button type="button" class="btn icon" id="menuBtn" aria-haspopup="true" aria-expanded="false" aria-controls="menu" aria-label="More actions">⋯</button>
+    <div class="menu" id="menu" hidden>
+      <button type="button" data-act="pdf">Import PDF resume (AI)</button>
+      <button type="button" data-act="import">Import JSON</button>
+      <button type="button" data-act="export">Export JSON</button>
+      <button type="button" class="danger" data-act="clear">Clear all information</button>
+      <button type="button" data-act="reset">Reset</button>
+      <button type="button" data-act="settings">Settings</button>
+    </div>
+  </div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" aria-label="Resume completeness"><span id="bar"></span></div>
+  <p id="progressText">0 of 6 sections done</p>
+</div>
+
+<main class="layout">
+  <section class="editor" aria-label="Resume editor">
+    <p class="banner" id="banner" hidden>Sample data loaded. Replace it with yours.</p>
+    <section class="card" id="aiCard" data-card-ai="1">
+      <button type="button" class="cardHead" data-toggle="ai" aria-expanded="false" aria-controls="aiBody">
+        <span aria-hidden="true">✦</span><span>Tailor to a job (AI)</span><span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="cardBody" id="aiBody" hidden>
+        <p class="muted">Optional. One request, cached when the input is identical. Nothing changes until you accept. Suggestions are fact-checked: numbers not already in your resume are rejected.</p>
+        <div class="field wide">
+          <label for="jobText">Paste the job description</label>
+          <textarea id="jobText" rows="5" placeholder="Paste the role and its requirements here..."></textarea>
+        </div>
+        <p class="muted" id="estimate">Paste a job description to tailor your resume.</p>
+        <button type="button" class="btn primary" id="aiBtn">Tailor my resume</button>
+        <p class="status" id="aiStatus" aria-live="polite"></p>
+        <div id="diff"></div>
+      </div>
+    </section>
+    <div id="cards"></div>
+  </section>
+
+  <section class="previewPane" aria-label="Live preview">
+    <div class="paper"><iframe id="preview" title="Resume preview"></iframe></div>
+  </section>
+</main>
+
+<nav class="tabs" role="tablist" aria-label="Views">
+  <button type="button" data-tab="edit" class="active" role="tab" aria-selected="true">Edit</button>
+  <button type="button" data-tab="preview" role="tab" aria-selected="false">Preview</button>
+  <button type="button" data-tab="ai" role="tab" aria-selected="false">AI</button>
+</nav>
+
+<dialog id="settings">
+  <form class="dlg" id="settingsForm">
+    <h2>Settings</h2>
+    <p class="muted">Free keys:<br>OpenRouter: openrouter.ai/keys (use a <code>:free</code> model)<br>Groq: console.groq.com/keys<br>Gemini: aistudio.google.com/apikey</p>
+    <div class="field">
+      <label for="sKey">API key</label>
+      <input id="sKey" type="password" autocomplete="off" placeholder="sk-...">
+      <p class="hint" id="keyHint"></p>
+    </div>
+    <div class="field">
+      <label for="sBase">Base URL</label>
+      <input id="sBase" placeholder="https://openrouter.ai/api/v1">
+    </div>
+    <div class="field">
+      <label for="sModel">Model</label>
+      <input id="sModel" placeholder="meta-llama/llama-3.3-70b-instruct:free">
+    </div>
+    <h3>PDF scan provider</h3>
+    <p class="muted">Optional. Used only for reading imported PDFs. Leave blank to reuse the Tailor provider above.</p>
+    <div class="field">
+      <label for="sScanKey">API key</label>
+      <input id="sScanKey" type="password" autocomplete="off" placeholder="Same as Tailor">
+      <p class="hint" id="scanKeyHint"></p>
+    </div>
+    <div class="field">
+      <label for="sScanBase">Base URL</label>
+      <input id="sScanBase" placeholder="Same as Tailor">
+    </div>
+    <div class="field">
+      <label for="sScanModel">Model</label>
+      <input id="sScanModel" placeholder="Same as Tailor">
+    </div>
+    <div class="row">
+      <button type="button" class="btn small" id="clearScan">Use Tailor provider for PDF scan</button>
+    </div>
+    <p class="status" id="testStatus" aria-live="polite"></p>
+    <div class="row end">
+      <button type="button" class="btn" id="closeSettings">Close</button>
+      <button type="button" class="btn" id="testBtn">Test connection</button>
+      <button type="submit" class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="confirm">
+  <form method="dialog" class="dlg">
+    <h2 id="confirmTitle">Reset everything?</h2>
+    <p class="muted" id="confirmText">This replaces your resume with the sample data. Your current text will be lost.</p>
+    <div class="row end">
+      <button class="btn" value="cancel">Cancel</button>
+      <button class="btn primary" value="reset" id="confirmReset">Reset</button>
+    </div>
+  </form>
+</dialog>
+
+<input type="file" id="file" accept="application/json,.json" hidden>
+<input type="file" id="pdfFile" accept="application/pdf,.pdf" hidden>
+<input type="file" id="photoFile" accept="image/*" hidden>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const KEY = 'resume-gen.v1';
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const EMPTY = {name:'',contact:{email:'',phone:'',location:'',links:[]},summary:'',experience:[],education:[],skills:[],projects:[]};
+
+let data, template = 'classic', sample = clone(EMPTY), history = [], hi = -1;
+let openCards = new Set(['basics']);
+let diffItems = [];
+let histTimer, saveTimer, previewTimer, savedTimer, toastTimer;
+
+const toMonth = (() => {
+  const M = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+  return s => {
+    s = String(s || '').trim();
+    if (/^\d{4}-\d{2}$/.test(s)) return s;
+    if (/^\d{4}$/.test(s)) return s + '-01';
+    let m = /^([A-Za-z]{3,9})\.?\s+(\d{4})$/.exec(s);
+    if (m) { const k = M[m[1].slice(0, 3).toLowerCase()]; if (k) return m[2] + '-' + String(k).padStart(2, '0'); }
+    m = /^(\d{1,2})\/(\d{4})$/.exec(s);
+    if (m) return m[2] + '-' + m[1].padStart(2, '0');
+    return '';
+  };
+})();
+const pretty = s => { const m = /^(\d{4})-(\d{2})$/.exec(s || ''); return m ? MONTHS[+m[2] - 1] + ' ' + m[1] : (s || ''); };
+
+function normalize(d) {
+  d.name = d.name || '';
+  d.photo = typeof d.photo === 'string' ? d.photo : '';
+  d.contact = Object.assign({email:'',phone:'',location:'',links:[]}, d.contact || {});
+  if (!Array.isArray(d.contact.links)) d.contact.links = [];
+  d.summary = d.summary || '';
+  ['experience','education','skills','projects'].forEach(k => { if (!Array.isArray(d[k])) d[k] = []; });
+  d.experience.forEach(r => {
+    r.bullets = Array.isArray(r.bullets) ? r.bullets.map(String) : [];
+    r.present = !!r.present || /^present$/i.test(String(r.end || ''));
+    if (r.present) r.end = '';
+    r.start = toMonth(r.start);
+    r.end = toMonth(r.end);
+  });
+  d.education.forEach(e => { e.year = e.year || ''; });
+  return d;
+}
+
+function setPath(path, value) {
+  const parts = path.split('.');
+  let o = data;
+  for (let i = 0; i < parts.length - 1; i++) { o = o[parts[i]]; if (o == null) return; }
+  o[parts[parts.length - 1]] = value;
+}
+
+function renderPayload() {
+  const d = clone(data);
+  d.experience.forEach(r => { r.start = pretty(r.start); r.end = r.present ? 'Present' : pretty(r.end); delete r.present; });
+  return d;
+}
+
+function field(label, path, value, o = {}) {
+  const id = 'f-' + path.replace(/[^a-z0-9]+/gi, '-');
+  const attrs = [`id="${id}"`, `data-path="${path}"`, `value="${esc(value)}"`, `placeholder="${esc(o.ph || '')}"`];
+  if (o.type) attrs.push(`type="${o.type}"`);
+  if (o.split) attrs.push(`data-split="${esc(o.split)}"`);
+  const hint = o.hint !== undefined ? `<p class="hint" data-hint="${path}">${esc(o.hint)}</p>` : '';
+  return `<div class="field${o.wide ? ' wide' : ''}"><label for="${id}">${esc(label)}</label><input ${attrs.join(' ')}>${hint}</div>`;
+}
+
+function area(label, path, value, o = {}) {
+  const id = 'f-' + path.replace(/[^a-z0-9]+/gi, '-');
+  const attrs = [`id="${id}"`, `data-path="${path}"`, `rows="${o.rows || 4}"`, `placeholder="${esc(o.ph || '')}"`];
+  if (o.list) attrs.push('data-list="lines"');
+  if (o.count) attrs.push(`data-count="${path}"`);
+  const hint = o.count ? `<p class="hint" data-count-hint="${path}"></p>` : '';
+  return `<div class="field wide"><label for="${id}">${esc(label)}</label><textarea ${attrs.join(' ')}>${esc(value)}</textarea>${hint}</div>`;
+}
+
+function card(id, title, body) {
+  const open = openCards.has(id);
+  return `<section class="card${open ? ' open' : ''}" data-card="${id}">
+    <button type="button" class="cardHead" data-toggle="${id}" aria-expanded="${open}">
+      <span class="check" data-check="${id}" aria-label="incomplete">○</span>
+      <span>${esc(title)}</span><span class="chev" aria-hidden="true">▾</span>
+    </button>
+    <div class="cardBody"${open ? '' : ' hidden'}>${body}</div>
+  </section>`;
+}
+
+function entryActions(path, first, last) {
+  return `<div class="entryActions">
+    <button type="button" class="btn tiny" data-up="${path}" aria-label="Move up" ${first ? 'disabled' : ''}>↑</button>
+    <button type="button" class="btn tiny" data-down="${path}" aria-label="Move down" ${last ? 'disabled' : ''}>↓</button>
+    <button type="button" class="btn tiny danger" data-del="${path}">Remove</button>
+  </div>`;
+}
+
+function basicsCard() {
+  const c = data.contact;
+  const body = `<div class="grid2">
+    ${field('Full name', 'name', data.name, {ph:'Jordan Blake', hint: data.name.trim() ? '' : 'Add your name.'})}
+    ${field('Email', 'contact.email', c.email, {type:'email', ph:'you@example.com', hint: c.email.trim() ? '' : 'Add an email so recruiters can reach you.'})}
+    ${field('Phone', 'contact.phone', c.phone, {ph:'+1 555 014 2277'})}
+    ${field('Location', 'contact.location', c.location, {ph:'Portland, OR'})}
+    ${field('Links (comma separated)', 'contact.links', (c.links || []).join(', '), {wide:true, split:',', ph:'github.com/you, linkedin.com/in/you'})}
+  </div>
+  <div class="field wide"><span class="label">Photo</span>
+    <div class="photoRow">
+      ${data.photo ? `<img class="thumb" src="${esc(data.photo)}" alt="Current photo">` : '<span class="thumb emptyThumb" aria-hidden="true">No photo</span>'}
+      <button type="button" class="btn" data-photo-add>${data.photo ? 'Change photo' : 'Add photo'}</button>
+      ${data.photo ? '<button type="button" class="btn danger" data-photo-del>Remove</button>' : ''}
+      <span class="hint">Shown on the right side of the header.</span>
+    </div>
+  </div>`;
+  return card('basics', 'Basics', body);
+}
+
+function summaryCard() {
+  return card('summary', 'Summary', area('Summary', 'summary', data.summary, {rows:4, ph:'Backend engineer with 6 years building reliable Python services.'}));
+}
+
+function expCard() {
+  let body = '';
+  if (!data.experience.length) body = '<p class="empty">No jobs yet. Add your most recent one first.</p>';
+  data.experience.forEach((r, i) => {
+    const p = `experience.${i}`;
+    body += `<div class="entry">
+      <div class="entryHead"><strong>${esc(r.title || 'Untitled role')}</strong>${entryActions(p, i === 0, i === data.experience.length - 1)}</div>
+      <div class="grid2">
+        ${field('Job title', p + '.title', r.title, {ph:'Senior Backend Engineer'})}
+        ${field('Company', p + '.company', r.company, {ph:'Northwind Data'})}
+        ${field('Location', p + '.location', r.location, {ph:'Portland, OR or Remote'})}
+        <div class="field"><span class="label">Dates</span>
+          <div class="dates">
+            <label class="sr-only" for="f-${p.replace(/\./g, '-')}-start">Start month</label>
+            <input type="month" id="f-${p.replace(/\./g, '-')}-start" data-path="${p}.start" value="${esc(r.start)}">
+            <label class="sr-only" for="f-${p.replace(/\./g, '-')}-end">End month</label>
+            <input type="month" id="f-${p.replace(/\./g, '-')}-end" data-path="${p}.end" value="${esc(r.end)}" ${r.present ? 'disabled' : ''}>
+            <label class="inline"><input type="checkbox" data-present="${p}" ${r.present ? 'checked' : ''}> Present</label>
+          </div>
+        </div>
+      </div>
+      ${area('Bullets (one per line)', p + '.bullets', (r.bullets || []).join('\n'), {rows:Math.max(3, (r.bullets || []).length + 1), ph:'Led a team of 4 to cut load time by 35%', list:true, count:true})}
+    </div>`;
+  });
+  body += '<button type="button" class="btn add" data-add="experience">+ Add job</button>';
+  return card('experience', 'Experience', body);
+}
+
+function eduCard() {
+  let body = '';
+  if (!data.education.length) body = '<p class="empty">No education yet. Add a degree or a certification.</p>';
+  data.education.forEach((e, i) => {
+    const p = `education.${i}`;
+    body += `<div class="entry">
+      <div class="entryHead"><strong>${esc(e.degree || 'Untitled education')}</strong>${entryActions(p, i === 0, i === data.education.length - 1)}</div>
+      <div class="grid2">
+        ${field('Degree or certificate', p + '.degree', e.degree, {ph:'B.S. Computer Science'})}
+        ${field('School', p + '.school', e.school, {ph:'University of Oregon'})}
+        ${field('Location', p + '.location', e.location, {ph:'Eugene, OR'})}
+        ${field('Year', p + '.year', e.year, {ph:'2018'})}
+      </div>
+    </div>`;
+  });
+  body += '<button type="button" class="btn add" data-add="education">+ Add education</button>';
+  return card('education', 'Education', body);
+}
+
+function skillsCard() {
+  const chips = data.skills.map((s, i) => `<span class="chip">${esc(s)}<button type="button" data-chip-del="${i}" aria-label="Remove ${esc(s)}">×</button></span>`).join('');
+  const body = `<div class="field wide">
+    <label for="skillInput">Skills</label>
+    <div class="chips">${chips}<input id="skillInput" placeholder="Type a skill, press Enter" autocomplete="off"></div>
+    <p class="hint">Press Enter or comma to add. Reuse the words from the job posting.</p>
+  </div>`;
+  return card('skills', 'Skills', body);
+}
+
+function projCard() {
+  let body = '';
+  if (!data.projects.length) body = '<p class="empty">No projects yet. A small side project is fine.</p>';
+  data.projects.forEach((p, i) => {
+    const path = `projects.${i}`;
+    body += `<div class="entry">
+      <div class="entryHead"><strong>${esc(p.name || 'Untitled project')}</strong>${entryActions(path, i === 0, i === data.projects.length - 1)}</div>
+      <div class="grid2">
+        ${field('Project name', path + '.name', p.name, {ph:'Trailhead'})}
+        ${field('Tech', path + '.tech', p.tech, {ph:'Python, FastAPI, SQLite'})}
+      </div>
+      ${area('What it does', path + '.description', p.description, {rows:2, ph:'Open-source trip planner with offline maps.'})}
+    </div>`;
+  });
+  body += '<button type="button" class="btn add" data-add="projects">+ Add project</button>';
+  return card('projects', 'Projects', body);
+}
+
+function isDone(id) {
+  switch (id) {
+    case 'basics': return !!(data.name.trim() && data.contact.email.trim());
+    case 'summary': return data.summary.trim().length >= 40;
+    case 'experience': return data.experience.some(r => r.title && r.company);
+    case 'education': return data.education.length > 0;
+    case 'skills': return data.skills.length >= 3;
+    case 'projects': return data.projects.length > 0;
+  }
+  return false;
+}
+
+function updateChecks() {
+  $$('[data-check]').forEach(el => {
+    const ok = isDone(el.dataset.check);
+    el.textContent = ok ? '✓' : '○';
+    el.setAttribute('aria-label', ok ? 'complete' : 'incomplete');
+    el.classList.toggle('ok', ok);
+  });
+  const n = ['basics','summary','experience','education','skills','projects'].filter(isDone).length;
+  $('#progressText').textContent = `${n} of 6 sections done`;
+  $('#bar').style.width = (n / 6 * 100) + '%';
+  $('#bar').parentElement.setAttribute('aria-valuenow', n);
+}
+
+function refreshHints() {
+  const set = (p, msg) => { const h = $(`[data-hint="${p}"]`); if (h) h.textContent = msg; };
+  set('name', data.name.trim() ? '' : 'Add your name.');
+  set('contact.email', data.contact.email.trim() ? '' : 'Add an email so recruiters can reach you.');
+}
+
+function buildCards() {
+  $('#cards').innerHTML = [basicsCard(), summaryCard(), expCard(), eduCard(), skillsCard(), projCard()].join('');
+  updateChecks();
+  refreshHints();
+  $$('[data-count]').forEach(updateCount);
+}
+
+function updateCount(el) {
+  const lines = el.value.split('\n').map(s => s.trim()).filter(Boolean);
+  const max = lines.reduce((m, l) => Math.max(m, l.length), 0);
+  const hint = $(`[data-count-hint="${el.dataset.count}"]`);
+  if (!hint) return;
+  hint.textContent = `${lines.length} bullet${lines.length === 1 ? '' : 's'} · longest ${max} chars` + (max > 120 ? ' — Shorter reads better' : '');
+  hint.classList.toggle('warn', max > 120);
+}
+
+function snapshot() {
+  const s = JSON.stringify(data);
+  if (hi >= 0 && history[hi] === s) return;
+  history = history.slice(0, hi + 1);
+  history.push(s);
+  if (history.length > 30) history.shift();
+  hi = history.length - 1;
+}
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify({data, template})); } catch (e) {}
+  flashSaved();
+}
+
+function flashSaved() {
+  const el = $('#saved');
+  el.textContent = 'Saved';
+  el.classList.add('on');
+  clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => el.classList.remove('on'), 1500);
+}
+
+function touch() {
+  clearTimeout(histTimer); histTimer = setTimeout(snapshot, 400);
+  clearTimeout(saveTimer); saveTimer = setTimeout(save, 500);
+  clearTimeout(previewTimer); previewTimer = setTimeout(previewNow, 300);
+  updateChecks();
+  refreshHints();
+}
+
+async function previewNow() {
+  clearTimeout(previewTimer);
+  try {
+    const r = await fetch('/api/render', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({resume:renderPayload(), template})});
+    const j = await r.json();
+    if (j.html) $('#preview').srcdoc = j.html.replace('</head>', '<style>@media screen{body{padding:14mm}.page{max-width:none}}</style></head>');
+  } catch (e) {}
+}
+
+function undo() {
+  if (hi <= 0) return;
+  hi--; data = normalize(JSON.parse(history[hi])); buildCards(); previewNow(); save();
+}
+function redo() {
+  if (hi >= history.length - 1) return;
+  hi++; data = normalize(JSON.parse(history[hi])); buildCards(); previewNow(); save();
+}
+
+const ROUGH = new Set('the and for with you your our a an of to in on at by from as is are be this that will would can could should have has had not or we they their it its about into over under between across per using use used work works working role job company team teams candidate candidates experience years year ability strong excellent good great etc plus new all any each both few many own same so only just also very well within without who which what when where why how if but while during before after above below out off'.split(' '));
+function roughKeywords(t) {
+  const w = (t.toLowerCase().match(/[a-z][a-z0-9+#.]{2,}/g) || []).filter(x => !ROUGH.has(x));
+  return new Set(w).size;
+}
+function updateEstimate() {
+  const n = roughKeywords($('#jobText').value);
+  $('#estimate').textContent = n ? `Sends ~${Math.min(n, 25)} keywords, 1 request.` : 'Paste a job description to tailor your resume.';
+}
+
+function aiStatus(msg, tone) {
+  const el = $('#aiStatus');
+  el.textContent = msg;
+  el.className = 'status' + (tone ? ' ' + tone : '');
+}
+function setBusy(on) {
+  const b = $('#aiBtn');
+  b.disabled = on;
+  b.innerHTML = on ? '<span class="spinner" aria-hidden="true"></span> Working... (max 20s)' : 'Tailor my resume';
+}
+
+async function runAI() {
+  const job = $('#jobText').value.trim();
+  if (!job) return aiStatus('Paste a job description first.', 'bad');
+  const st = await fetch('/api/settings').then(r => r.json()).catch(() => ({has_key:false}));
+  if (!st.has_key) { openSettings(); return aiStatus('Add a free API key to use AI.', ''); }
+  setBusy(true);
+  aiStatus('Sending one request...', '');
+  try {
+    const r = await fetch('/api/ai', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({resume:renderPayload(), job})});
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'The AI service did not answer.');
+    showDiff(j.resume || {});
+    const note = j.kept ? ` ${j.kept} suggestion${j.kept === 1 ? '' : 's'} kept your original wording to stay factual.` : '';
+    aiStatus((j.cached ? 'Used cache, free. ' : '') + 'Review the suggestions below. Nothing changes until you accept.' + note, 'good');
+  } catch (err) {
+    aiStatus(err.message + ' Your resume is unchanged.', 'bad');
+  } finally {
+    setBusy(false);
+  }
+}
+
+function showDiff(sug) {
+  diffItems = [];
+  if (sug.summary && sug.summary.trim() && sug.summary.trim() !== data.summary.trim())
+    diffItems.push({kind:'summary', old:data.summary, next:sug.summary.trim()});
+  (sug.experience || []).forEach((r, ri) => {
+    const cur = (data.experience[ri] && data.experience[ri].bullets) || [];
+    (r.bullets || []).forEach((b, bi) => {
+      if (b && b.trim() && b.trim() !== String(cur[bi] || '').trim())
+        diffItems.push({kind:'bullet', ri, bi, old:cur[bi] || '', next:b.trim()});
+    });
+  });
+  renderDiff();
+}
+
+function renderDiff() {
+  const box = $('#diff');
+  if (!diffItems.length) { box.innerHTML = '<p class="muted">No changes suggested.</p>'; return; }
+  box.innerHTML = `<div class="diffHead"><strong>${diffItems.length} suggestion${diffItems.length === 1 ? '' : 's'}</strong>
+    <button type="button" class="btn small" id="acceptAll">Accept all</button></div>` +
+    diffItems.map((it, i) => `<div class="diffItem">
+      <p class="diffLabel">${it.kind === 'summary' ? 'Summary' : esc((data.experience[it.ri] || {}).title || 'Role ' + (it.ri + 1))}</p>
+      <p class="diffOld"><span class="tag">Original</span>${esc(it.old || '(empty)')}</p>
+      <p class="diffNew"><span class="tag">Suggested</span>${esc(it.next)}</p>
+      <div class="diffActions">
+        <button type="button" class="btn small primary" data-accept="${i}">Accept</button>
+        <button type="button" class="btn small" data-reject="${i}">Reject</button>
+      </div>
+    </div>`).join('');
+}
+
+function applyItem(it) {
+  if (it.kind === 'summary') { data.summary = it.next; return; }
+  const r = data.experience[it.ri];
+  if (!r) return;
+  if (!Array.isArray(r.bullets)) r.bullets = [];
+  while (r.bullets.length <= it.bi) r.bullets.push('');
+  r.bullets[it.bi] = it.next;
+}
+
+async function openSettings() {
+  const s = await fetch('/api/settings').then(r => r.json()).catch(() => ({}));
+  const lock = s.locked || {};
+  $('#sKey').value = '';
+  $('#sKey').disabled = !!lock.api_key;
+  $('#sBase').disabled = !!lock.base_url;
+  $('#sModel').disabled = !!lock.model;
+  $('#sKey').placeholder = lock.api_key ? 'Set in the backend environment'
+    : s.key_last4 ? `Saved key ending ${s.key_last4} (leave blank to keep)` : 'sk-...';
+  $('#keyHint').textContent = lock.api_key
+    ? 'Configured by the server environment (AI_API_KEY). Change it there.'
+    : s.has_key ? `Key saved, ending ${s.key_last4}.` : 'No key saved yet.';
+  $('#sBase').value = s.base_url || '';
+  $('#sModel').value = s.model || '';
+  $('#sScanKey').value = '';
+  $('#sScanKey').disabled = !!lock.scan_api_key;
+  $('#sScanBase').disabled = !!lock.scan_base_url;
+  $('#sScanModel').disabled = !!lock.scan_model;
+  $('#sScanKey').placeholder = lock.scan_api_key ? 'Set in the backend environment'
+    : s.scan_key_last4 ? `Saved key ending ${s.scan_key_last4} (leave blank to keep)` : 'Same as Tailor';
+  const partial = (s.scan_base_url || s.scan_model || s.scan_key_last4) && !s.scan_active;
+  $('#scanKeyHint').textContent = lock.scan_api_key
+    ? 'Configured by the server environment (AI_SCAN_API_KEY).'
+    : s.scan_active ? `Active for PDF scan${s.scan_key_last4 ? ', key ending ' + s.scan_key_last4 : ''}.`
+    : partial ? 'Incomplete: set base URL, model and key, or clear all three to use Tailor.'
+    : 'Optional. Leave blank to use the Tailor key.';
+  $('#sScanBase').value = s.scan_base_url || '';
+  $('#sScanBase').placeholder = 'Same as Tailor: ' + (s.base_url || '');
+  $('#sScanModel').value = s.scan_model || '';
+  $('#sScanModel').placeholder = 'Same as Tailor: ' + (s.model || '');
+  $('#testStatus').textContent = '';
+  $('#testStatus').className = 'status';
+  $('#settings').showModal();
+  if (!lock.api_key) $('#sKey').focus();
+}
+
+async function postSettings() {
+  const body = {};
+  if (!$('#sBase').disabled) body.base_url = $('#sBase').value.trim();
+  if (!$('#sModel').disabled) body.model = $('#sModel').value.trim();
+  if (!$('#sKey').disabled) { const k = $('#sKey').value.trim(); if (k) body.api_key = k; }
+  if (!$('#sScanBase').disabled) body.scan_base_url = $('#sScanBase').value.trim();
+  if (!$('#sScanModel').disabled) body.scan_model = $('#sScanModel').value.trim();
+  if (!$('#sScanKey').disabled) { const k = $('#sScanKey').value.trim(); if (k) body.scan_api_key = k; }
+  const r = await fetch('/api/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  return r.json();
+}
+
+function toast(msg, sticky) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  if (!sticky) toastTimer = setTimeout(() => { t.hidden = true; }, 3000);
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(renderPayload(), null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'resume.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Exported resume.json');
+}
+
+function downloadPDF() {
+  const f = $('#preview');
+  try { f.contentWindow.focus(); f.contentWindow.print(); }
+  catch (e) {
+    const w = window.open('', '_blank');
+    if (w) { w.document.write(f.srcdoc); w.document.close(); w.focus(); w.print(); }
+  }
+}
+
+async function boot() {
+  try { sample = normalize(clone(await (await fetch('/api/sample')).json())); } catch (e) { sample = normalize(clone(EMPTY)); }
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+  if (saved && saved.data) {
+    data = normalize(saved.data);
+    template = saved.template === 'modern' ? 'modern' : 'classic';
+    $('#banner').hidden = true;
+  } else {
+    data = normalize(clone(sample));
+    $('#banner').hidden = false;
+  }
+  $('#tpl').value = template;
+  buildCards();
+  snapshot();
+  previewNow();
+}
+
+// card open/close
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-toggle]');
+  if (!t) return;
+  const body = t.nextElementSibling;
+  const cardEl = t.closest('.card');
+  const open = body.hidden;
+  body.hidden = !open;
+  t.setAttribute('aria-expanded', String(open));
+  cardEl.classList.toggle('open', open);
+  if (cardEl.dataset.card) { open ? openCards.add(cardEl.dataset.card) : openCards.delete(cardEl.dataset.card); }
+  if (t.dataset.toggle === 'ai') updateEstimate();
+});
+
+// editor input
+$('#cards').addEventListener('input', e => {
+  const el = e.target;
+  if (!el.dataset.path) return;
+  const p = el.dataset.path;
+  if (el.dataset.list === 'lines') setPath(p, el.value.split('\n').map(s => s.trim()).filter(Boolean));
+  else if (el.dataset.split) setPath(p, el.value.split(el.dataset.split).map(s => s.trim()).filter(Boolean));
+  else setPath(p, el.value);
+  if (el.dataset.count) updateCount(el);
+  touch();
+});
+
+$('#cards').addEventListener('change', e => {
+  const el = e.target;
+  if (!el.dataset.present) return;
+  const p = el.dataset.present;
+  setPath(p + '.present', el.checked);
+  if (el.checked) setPath(p + '.end', '');
+  const end = $(`[data-path="${p}.end"]`);
+  if (end) end.disabled = el.checked;
+  touch();
+});
+
+// add / remove / reorder / chips
+$('#cards').addEventListener('click', e => {
+  const photoAdd = e.target.closest('[data-photo-add]');
+  if (photoAdd) { $('#photoFile').click(); return; }
+  const photoDel = e.target.closest('[data-photo-del]');
+  if (photoDel) { delete data.photo; buildCards(); touch(); snapshot(); return; }
+  const add = e.target.closest('[data-add]');
+  if (add) {
+    const k = add.dataset.add;
+    if (k === 'experience') data.experience.push({title:'',company:'',location:'',start:'',end:'',present:false,bullets:[]});
+    if (k === 'education') data.education.push({degree:'',school:'',location:'',year:''});
+    if (k === 'projects') data.projects.push({name:'',tech:'',description:''});
+    openCards.add(k);
+    buildCards();
+    const list = data[k];
+    const el = $(`[data-path="${k}.${list.length - 1}.${k === 'experience' ? 'title' : k === 'education' ? 'degree' : 'name'}"]`);
+    if (el) { el.focus(); el.scrollIntoView({block:'center'}); }
+    touch(); snapshot();
+    return;
+  }
+  const del = e.target.closest('[data-del]');
+  if (del) {
+    const [k, i] = del.dataset.del.split('.');
+    data[k].splice(+i, 1);
+    buildCards(); touch(); snapshot();
+    return;
+  }
+  const up = e.target.closest('[data-up]');
+  const down = e.target.closest('[data-down]');
+  const move = up || down;
+  if (move) {
+    const [k, i] = (up || down).dataset[up ? 'up' : 'down'].split('.');
+    const a = data[k], n = +i, j = up ? n - 1 : n + 1;
+    if (j < 0 || j >= a.length) return;
+    [a[n], a[j]] = [a[j], a[n]];
+    buildCards(); touch(); snapshot();
+    return;
+  }
+  const chip = e.target.closest('[data-chip-del]');
+  if (chip) {
+    data.skills.splice(+chip.dataset.chipDel, 1);
+    buildCards(); touch(); snapshot();
+    const inp = $('#skillInput'); if (inp) inp.focus();
+  }
+});
+
+// skill input
+document.addEventListener('keydown', e => {
+  if (e.target.id !== 'skillInput') return;
+  if (e.key !== 'Enter' && e.key !== ',') return;
+  e.preventDefault();
+  const v = e.target.value.replace(/,+$/, '').trim();
+  if (v && !data.skills.some(s => s.toLowerCase() === v.toLowerCase())) data.skills.push(v);
+  e.target.value = '';
+  buildCards(); touch(); snapshot();
+  const inp = $('#skillInput'); if (inp) inp.focus();
+});
+
+// preview
+$('#tpl').addEventListener('change', e => { template = e.target.value; save(); previewNow(); });
+
+// AI
+$('#jobText').addEventListener('input', updateEstimate);
+$('#aiBtn').addEventListener('click', runAI);
+$('#diff').addEventListener('click', e => {
+  if (e.target.id === 'acceptAll') {
+    diffItems.forEach(applyItem);
+    diffItems = [];
+    buildCards(); touch(); snapshot(); renderDiff();
+    aiStatus('All suggestions applied.', 'good');
+    return;
+  }
+  const acc = e.target.closest('[data-accept]');
+  const rej = e.target.closest('[data-reject]');
+  if (acc) {
+    applyItem(diffItems[+acc.dataset.accept]);
+    diffItems.splice(+acc.dataset.accept, 1);
+    buildCards(); touch(); snapshot(); renderDiff();
+  } else if (rej) {
+    diffItems.splice(+rej.dataset.reject, 1);
+    renderDiff();
+  }
+});
+
+// menu
+$('#menuBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  const m = $('#menu');
+  m.hidden = !m.hidden;
+  $('#menuBtn').setAttribute('aria-expanded', String(!m.hidden));
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('#menu') && !e.target.closest('#menuBtn')) {
+    $('#menu').hidden = true;
+    $('#menuBtn').setAttribute('aria-expanded', 'false');
+  }
+});
+let confirmMode = 'reset';
+
+function askConfirm(mode, title, text, label) {
+  confirmMode = mode;
+  $('#confirmTitle').textContent = title;
+  $('#confirmText').textContent = text;
+  $('#confirmReset').textContent = label;
+  $('#confirm').showModal();
+}
+
+$('#menu').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  $('#menu').hidden = true;
+  $('#menuBtn').setAttribute('aria-expanded', 'false');
+  const act = b.dataset.act;
+  if (act === 'pdf') $('#pdfFile').click();
+  if (act === 'import') $('#file').click();
+  if (act === 'export') exportJSON();
+  if (act === 'clear') askConfirm('clear', 'Clear all information?',
+    'This empties every resume field, including your photo. You can undo with Ctrl+Z.', 'Clear all');
+  if (act === 'reset') askConfirm('reset', 'Reset everything?',
+    'This replaces your resume with the sample data. Your current text will be lost.', 'Reset');
+  if (act === 'settings') openSettings();
+});
+
+// import / export / reset
+$('#file').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  try {
+    const obj = JSON.parse(await f.text());
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw new Error('that file is not a resume object');
+    if (typeof obj.name !== 'string' && !Array.isArray(obj.experience)) throw new Error('missing name and experience - export your current resume to see the shape');
+    data = normalize(obj);
+    diffItems = [];
+    $('#diff').innerHTML = '';
+    openCards = new Set(['basics']);
+    buildCards(); snapshot(); touch();
+    $('#banner').hidden = true;
+    toast('Imported. Check the preview.');
+  } catch (err) {
+    toast('Import failed: ' + err.message + '.');
+  }
+});
+
+$('#pdfFile').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  if (f.size > 12 * 1024 * 1024) return toast('PDF is over 12 MB. Pick a smaller file.');
+  toast('Reading PDF... one AI request (max 20s).', true);
+  try {
+    const r = await fetch('/api/import-pdf', {method:'POST', headers:{'Content-Type':'application/pdf'}, body:f});
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'Could not read that PDF.');
+    const photo = data.photo;
+    data = normalize(j.resume || {});
+    if (photo) data.photo = photo;
+    diffItems = [];
+    $('#diff').innerHTML = '';
+    openCards = new Set(['basics']);
+    buildCards(); snapshot(); touch(); previewNow();
+    $('#banner').hidden = true;
+    toast('Filled from PDF. Check every field for accuracy.');
+  } catch (err) {
+    toast(err.message);
+  }
+});
+
+function readPhoto(file) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onerror = () => reject(new Error('Could not read that file.'));
+    fr.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('That file is not an image.'));
+      img.onload = () => {
+        const scale = Math.min(1, 400 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.width * scale));
+        c.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        try { resolve(c.toDataURL('image/jpeg', 0.85)); } catch (e) { resolve(fr.result); }
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+$('#photoFile').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  if (f.size > 8 * 1024 * 1024) return toast('That image is over 8 MB. Pick a smaller one.');
+  try {
+    data.photo = await readPhoto(f);
+    buildCards(); touch(); snapshot();
+    toast('Photo added.');
+  } catch (err) {
+    toast(err.message);
+  }
+});
+
+$('#confirmReset').addEventListener('click', () => {
+  snapshot();
+  diffItems = [];
+  $('#diff').innerHTML = '';
+  if (confirmMode === 'clear') {
+    data = normalize(clone(EMPTY));
+    openCards = new Set(['basics']);
+    buildCards(); snapshot(); touch();
+    $('#banner').hidden = true;
+    toast('All information cleared. Press Ctrl+Z to undo.');
+    return;
+  }
+  data = normalize(clone(sample));
+  openCards = new Set(['basics']);
+  buildCards(); snapshot(); touch();
+  $('#banner').hidden = false;
+  toast('Reset to sample data.');
+});
+
+// settings
+$('#settingsForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const j = await postSettings();
+  $('#settings').close();
+  toast(j.has_key ? `Settings saved. Key ending ${j.key_last4}.` : 'Settings saved.');
+});
+$('#closeSettings').addEventListener('click', () => $('#settings').close());
+$('#clearScan').addEventListener('click', async () => {
+  const r = await fetch('/api/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scan_clear:true})});
+  if (!r.ok) return toast('Could not clear the scan provider.');
+  $('#sScanKey').value = '';
+  $('#sScanBase').value = '';
+  $('#sScanModel').value = '';
+  toast('PDF scan will use the Tailor provider.');
+});
+$('#testBtn').addEventListener('click', async () => {
+  const el = $('#testStatus');
+  el.className = 'status';
+  el.textContent = 'Testing...';
+  await postSettings();
+  try {
+    const r = await fetch('/api/settings/test', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+    const j = await r.json();
+    let msg = (j.ok ? '✓ Tailor: ' : '✕ Tailor: ') + j.message;
+    let good = j.ok;
+    if (!j.scan_same) {
+      msg += '\n' + (j.scan_ok ? '✓ Scan: ' : '✕ Scan: ') + j.scan_message;
+      good = good && j.scan_ok;
+    } else {
+      msg += '\nScan: same provider.';
+    }
+    el.textContent = msg;
+    el.className = 'status ' + (good ? 'good' : 'bad');
+  } catch (err) {
+    el.textContent = '✕ Could not reach the local server.';
+    el.className = 'status bad';
+  }
+});
+
+// top actions
+$('#pdf').addEventListener('click', downloadPDF);
+
+// tabs
+$$('.tabs [data-tab]').forEach(b => b.addEventListener('click', () => {
+  document.body.dataset.tab = b.dataset.tab;
+  $$('.tabs [data-tab]').forEach(x => {
+    x.classList.toggle('active', x === b);
+    x.setAttribute('aria-selected', String(x === b));
+  });
+  if (b.dataset.tab === 'ai') {
+    $('#aiBody').hidden = false;
+    $('#aiCard').classList.add('open');
+    $('#aiCard .cardHead').setAttribute('aria-expanded', 'true');
+    setTimeout(() => $('#aiCard').scrollIntoView({block:'start'}), 50);
+  }
+  if (b.dataset.tab === 'preview') setTimeout(previewNow, 50);
+}));
+
+// shortcuts
+document.addEventListener('keydown', e => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (!mod) return;
+  const k = e.key.toLowerCase();
+  if (k === 's') { e.preventDefault(); save(); snapshot(); }
+  else if (k === 'p') { e.preventDefault(); downloadPDF(); }
+  else if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+  else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
+});
+
+window.addEventListener('beforeunload', () => {
+  try { localStorage.setItem(KEY, JSON.stringify({data, template})); } catch (e) {}
+});
+
+boot();
+</script>
+</body>
+</html>
