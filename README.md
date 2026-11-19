@@ -7,7 +7,7 @@ Offline resume builder; optional one AI call to tailor bullets/summary. Python 3
 
 Edit `resume.json` (single source of truth). Open the HTML and print to PDF (A4, styled); `weasyprint`/`wkhtmltopdf` are used if installed.
 
-Web UI (`python resume_gen.py serve`): add a photo, or import an old PDF resume from the menu. PDF import uses one AI call and needs selectable text; scanned/image PDFs need OCR first. Review every imported field.
+Web UI (`python resume_gen.py serve`): add a photo, or import an old PDF resume from the menu. PDF import uses one AI call and needs selectable text; scanned/image PDFs need OCR first. Review every imported field. The Design card changes font size, font family, text color, and accent color for the preview and PDF (stored in this browser; CLI builds use template defaults).
 AI is opt-in (`--ai --job`), cached in `.cache/`, falls back to your text on any error, 20s timeout.
 Env: `AI_BASE_URL` (default https://openrouter.ai/api/v1), `AI_API_KEY`, `AI_MODEL` (default meta-llama/llama-3.3-70b-instruct:free).
 Any OpenAI-compatible free tier works: OpenRouter `:free` models, Groq (https://api.groq.com/openai/v1), Gemini (https://generativelanguage.googleapis.com/v1beta/openai).

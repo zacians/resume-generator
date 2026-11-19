@@ -72,19 +72,20 @@ BASE_CSS = """
 @page{size:A4;margin:14mm}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{font-size:__FS__pt;line-height:1.42;color:#141414;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+:root{--ink:#141414;--muted:#444;--accent:#1f3a5f;--font:Georgia,'Times New Roman',serif}
+body{font-family:var(--font);font-size:__FS__pt;line-height:1.42;color:var(--ink);background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .page{max-width:190mm;margin:0 auto}
 .head{display:flex;align-items:flex-start;gap:14px}
 .headText{flex:1;min-width:0}
 .photo{flex:none;width:26mm;height:26mm;object-fit:cover;border-radius:4px;border:1px solid #d4d4d8}
 h1{margin:0;font-size:2em;letter-spacing:.4px}
-h2{margin:13px 0 5px;font-size:1.02em;text-transform:uppercase;letter-spacing:1.4px}
-.contact{font-size:.88em;color:#444;margin-top:3px}
+h2{margin:13px 0 5px;font-size:1.02em;color:var(--accent);border-bottom:1px solid var(--accent);text-transform:uppercase;letter-spacing:1.4px;padding-bottom:2px}
+.contact{font-size:.88em;color:var(--muted);margin-top:3px}
 .item{margin:0 0 9px}
 .row{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
 .role{font-weight:700}
-.dates{color:#555;font-size:.9em;white-space:nowrap}
-.org{color:#333;font-size:.94em;font-style:italic;margin-bottom:2px}
+.dates{color:var(--muted);font-size:.9em;white-space:nowrap}
+.org{color:var(--muted);font-size:.94em;font-style:italic;margin-bottom:2px}
 ul{margin:2px 0 0;padding-left:17px}
 li{margin:0 0 1.5px}
 p{margin:0 0 6px}
@@ -93,15 +94,12 @@ a{color:inherit;text-decoration:none}
 @media print{body{font-size:__FS__pt}.page{max-width:none}}
 """
 CLASSIC = "<style>" + BASE_CSS + """
-body{font-family:Georgia,'Times New Roman',serif}
-h2{color:#1f3a5f;border-bottom:1px solid #1f3a5f;padding-bottom:2px}
+:root{--font:Georgia,'Times New Roman',serif;--accent:#1f3a5f}
 </style>"""
 MODERN = "<style>" + BASE_CSS + """
-body{font-family:'Segoe UI',Helvetica,Arial,sans-serif}
-h1{color:#0f172a}
-.contact{color:#475569}
-h2{color:#0e7490;border-bottom:2px solid #0e7490;padding-bottom:2px;letter-spacing:1.2px}
-.page{border-top:6px solid #0e7490;padding-top:10px}
+:root{--font:'Segoe UI',Helvetica,Arial,sans-serif;--ink:#0f172a;--muted:#475569;--accent:#0e7490}
+h2{border-bottom-width:2px;letter-spacing:1.2px}
+.page{border-top:6px solid var(--accent);padding-top:10px}
 </style>"""
 
 
@@ -275,12 +273,59 @@ def body_html(d):
     return "".join(h)
 
 
-def render_html(d, tpl, fs):
+FONT_STACKS = {
+    "serif": "Georgia,'Times New Roman',serif",
+    "sans": "'Segoe UI',Helvetica,Arial,sans-serif",
+    "mono": "'Courier New',Courier,monospace",
+}
+
+
+def _hex(v):
+    v = str(v or "").strip()
+    if re.fullmatch(r"#[0-9a-fA-F]{6}", v):
+        return v.lower()
+    if re.fullmatch(r"#[0-9a-fA-F]{3}", v):
+        return "#" + "".join(c * 2 for c in v[1:].lower())
+    return ""
+
+
+def _mix_white(color, amount):
+    rgb = (int(color[i:i + 2], 16) for i in (1, 3, 5))
+    return "#%02x%02x%02x" % tuple(round(c + (255 - c) * amount) for c in rgb)
+
+
+def _font_size(v, fallback):
+    try:
+        n = float(v)
+    except (TypeError, ValueError):
+        return fallback
+    n = max(8.0, min(13.0, round(n * 2) / 2))
+    return int(n) if n == int(n) else n
+
+
+def style_css(style):
+    if not isinstance(style, dict):
+        return ""
+    rules = []
+    font = FONT_STACKS.get(str(style.get("font") or "").strip().lower())
+    if font:
+        rules.append("--font:" + font)
+    text = _hex(style.get("text"))
+    if text:
+        rules.append("--ink:" + text)
+        rules.append("--muted:" + _mix_white(text, 0.22))
+    accent = _hex(style.get("accent"))
+    if accent:
+        rules.append("--accent:" + accent)
+    return ("<style>:root{%s}</style>" % ";".join(rules)) if rules else ""
+
+
+def render_html(d, tpl, fs, style=None):
     t = (CLASSIC if tpl == "classic" else MODERN).replace("__FS__", str(fs))
     return ('<!doctype html><html lang="en"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width,initial-scale=1">'
-            '<title>%s</title>%s</head><body><div class="page">%s</div></body></html>'
-            % (esc(d.get("name")), t, body_html(d)))
+            '<title>%s</title>%s%s</head><body><div class="page">%s</div></body></html>'
+            % (esc(d.get("name")), t, style_css(style), body_html(d)))
 
 
 def render_md(d):
@@ -863,7 +908,9 @@ class UIHandler(BaseHTTPRequestHandler):
         if self.path == "/api/render":
             try:
                 d = copy.deepcopy(body.get("resume") or {})
-                return self._send(200, {"html": render_html(d, body.get("template") or "classic", fit(d))})
+                style = body.get("style") if isinstance(body.get("style"), dict) else {}
+                fs = _font_size(style.get("size"), fit(d))
+                return self._send(200, {"html": render_html(d, body.get("template") or "classic", fs, style)})
             except Exception:
                 return self._send(400, {"error": "Could not render this resume. Check the field types."})
         if self.path == "/api/ai":
